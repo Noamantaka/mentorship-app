@@ -13,10 +13,10 @@ const FIELD_MENTORS = {
 };
 
 const FIELD_DOC_HINT = {
-  "Career Accelerator": "Please share your CV and LinkedIn profile",
-  "Entrepreneurship": "Please share your pitch deck, website or video",
-  "Finance Literacy & Crypto": "Please share your portfolio or budget sheet",
-  "Hijra": "Please share your LinkedIn profile",
+  "Career Accelerator": "Please share your CV, LinkedIn profile, or any document relevant to your goal and questions",
+  "Entrepreneurship": "Please share your pitch deck, website or video, or any document relevant to your goal and questions",
+  "Finance Literacy & Crypto": "Please share your portfolio or budget sheet, or any document relevant to your goal and questions",
+  "Hijra": "Please share your LinkedIn profile or any document relevant to your goal and questions",
 };
 
 const FIELDS = Object.keys(FIELD_MENTORS);
@@ -175,17 +175,19 @@ export default function Home() {
     field && mentor && questionsValid && goal.trim() && docLink.trim() && confirmed && !submitting;
 
   return (
-    <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg">
-        <div className="mb-10 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-black mb-6">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </div>
+<div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center px-4 py-12">
+
+  <div className="w-full max-w-lg">
+
+    <div className="mb-10 text-center">
+
+      <div className="mb-6 flex justify-center">
+        <img
+          src="https://thelifedao.io/logos/life-logo.svg"
+          alt="LifeDAO Logo"
+          className="h-20 object-contain"
+        />
+      </div>
 
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Book your mentoring session</h1>
 
@@ -195,12 +197,12 @@ export default function Home() {
 
           <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-xs text-gray-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#bb87ff] shrink-0"></span>
               <span><span className="font-medium text-gray-800">Basic</span> — {SESSION_INFO.basic}</span>
             </div>
 
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-xs text-gray-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7c16ff] shrink-0"></span>
               <span><span className="font-medium text-gray-800">Premium</span> — {SESSION_INFO.premium}</span>
             </div>
           </div>
@@ -232,7 +234,7 @@ export default function Home() {
           <button
             onClick={checkEligibility}
             disabled={loading || !isValidEmail}
-            className="w-full py-3 px-6 rounded-xl bg-black text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? <Spinner /> : "Check eligibility"}
           </button>
@@ -383,19 +385,28 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="border-t border-gray-100 pt-5">
-                  <label className="flex items-start gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={confirmed}
-                      onChange={(e) => setConfirmed(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
-                    />
-                    <span className="text-sm text-gray-600 leading-snug group-hover:text-gray-800 transition">
-                      I confirm that I have provided all required information and understand the session expectations.
-                    </span>
-                  </label>
-                </div>
+<div className="border-t border-gray-100 pt-5">
+  <label className="flex items-start gap-3 cursor-pointer group">
+    <input
+      type="checkbox"
+      checked={confirmed}
+      onChange={(e) => setConfirmed(e.target.checked)}
+      className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
+    />
+    <span className="text-sm text-gray-600 leading-snug group-hover:text-gray-800 transition">
+      I confirm that I have provided all required information, have read the{" "}
+      <a
+        href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/edit?tab=t.0"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline font-medium text-gray-900"
+      >
+        Mentee Agreement
+      </a>
+      , and understand the session expectations.
+    </span>
+  </label>
+</div>
 
                 {submitError && <AlertBox type="error">{submitError}</AlertBox>}
 
