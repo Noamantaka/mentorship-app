@@ -272,7 +272,7 @@ export default function Home() {
                       <ReadOnlyField label="Field" value={field} />
                     ) : (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Field</label>
+                        <label className="text-sm font-medium text-gray-700">Field<span className="text-red-400">*</span></label>
                         <select
                           value={field}
                           onChange={(e) => {
@@ -295,7 +295,7 @@ export default function Home() {
                       <ReadOnlyField label="Mentor" value={mentor} />
                     ) : (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Mentor</label>
+                        <label className="text-sm font-medium text-gray-700">Mentor<span className="text-red-400">*</span></label>
                         <select
                           value={mentor}
                           onChange={(e) => setMentor(e.target.value)}
@@ -414,7 +414,7 @@ export default function Home() {
                 <button
                   onClick={handleSubmit}
                   disabled={!canSubmit}
-                  className="w-full py-3 px-6 rounded-xl bg-black text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? <Spinner /> : "Submit request"}
                 </button>
