@@ -439,7 +439,7 @@ export default function Home() {
 function SectionTitle({ number, title }: { number: string | number; title: string }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-black text-white text-xs font-semibold shrink-0">
+      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#7c16ff] text-white text-xs font-semibold shrink-0">
         {number}
       </span>
       <p className="text-sm font-semibold text-gray-800">{title}</p>
