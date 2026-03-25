@@ -394,17 +394,18 @@ export default function Home() {
       className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
     />
     <span className="text-sm text-gray-600 leading-snug group-hover:text-gray-800 transition">
-      I confirm that I have provided all required information, have read the{" "}
-      <a
-        href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview?tab=t.0#heading=h.jdi0j7twd4h5"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline font-medium text-gray-900"
-      >
-        Mentee Agreement
-      </a>
-      , and understand the session expectations.
-    </span>
+  <span className="text-red-400 mr-1">*</span>
+  I confirm that I have provided all required information, have read the{" "}
+  <a
+    href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="underline font-medium text-gray-900"
+  >
+    Mentee Agreement
+  </a>
+  , and understand the session expectations.
+</span>
   </label>
 </div>
 
