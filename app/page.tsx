@@ -396,7 +396,7 @@ export default function Home() {
     <span className="text-sm text-gray-600 leading-snug group-hover:text-gray-800 transition">
       I confirm that I have provided all required information, have read the{" "}
       <a
-        href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/edit?tab=t.0"
+        href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview?tab=t.0#heading=h.jdi0j7twd4h5"
         target="_blank"
         rel="noopener noreferrer"
         className="underline font-medium text-gray-900"
