@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 const API_ENDPOINT = "https://REPLACE_ME/check-eligibility";
-const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbwC33mWE_c2fpBMHzj3BsctNeE_zEZwkGOLGefu15Werwc3V2OwouEGGsRNrD0NNE4W/exec";
+const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbycodw8q2aMWGecIe2gEj3drEcR2MYY11KJjLJrqbXNxV7-m1dxX_XZTSiDN9L8yr9Z/exec";
 
 const FIELD_MENTORS = {
   "Finance Literacy & Crypto": [
