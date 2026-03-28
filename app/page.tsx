@@ -196,7 +196,7 @@ export default function Home() {
     try {
       const request = fetch(ZAPIER_WEBHOOK, {
         method: "POST",
-        mode: "no-cors",
+        // mode: "no-cors",
         body: params,
       });
 
@@ -254,253 +254,235 @@ export default function Home() {
           </p>
         </div>
 
-        {!submitted && (
-  <>
-    <SectionTitle number="1" title="Check your eligibility" />
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => {
-          setEmail(e.target.value);
-          setResult(null);
-          setError(null);
-        }}
-        onKeyDown={(e) => e.key === "Enter" && isValidEmail && !loading && checkEligibility()}
-        placeholder="you@example.com"
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
-      />
-    </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-5">
+          {!submitted ? (
+            <>
+              <SectionTitle number="1" title="Check your eligibility" />
 
-    <button
-      onClick={checkEligibility}
-      disabled={loading || !isValidEmail}
-      className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-    >
-      {loading ? <Spinner /> : "Check eligibility"}
-    </button>
-  </>
-)}
-
-          <button
-            onClick={checkEligibility}
-            disabled={loading || !isValidEmail}
-            className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {loading ? <Spinner /> : "Check eligibility"}
-          </button>
-
-          {error && <AlertBox type="error">{error}</AlertBox>}
-
-          {result && !result.eligible && (
-            <AlertBox type="warning">
-              <p className="font-medium">You are not eligible to book a session at this time.</p>
-              {result.reason && <p className="mt-1">{result.reason}</p>}
-            </AlertBox>
-          )}
-
-          {result && result.eligible && !submitted && (
-            <div className="space-y-5 pt-2">
-              <AlertBox type="success">
-                <p className="font-medium">You are eligible!</p>
-                <p className="mt-0.5 text-xs">
-                  Your <span className="font-semibold capitalize">{result.plan}</span> plan gives you access to{" "}
-                  <span className="font-semibold">{SESSION_INFO[result.plan]}</span>.
-                </p>
-              </AlertBox>
-
-              <div className="border-t border-gray-100 pt-5 space-y-5">
-                <SectionTitle number="2" title="Select your mentor" />
-
-                {bothPrefilled ? (
-                  <div className="space-y-3">
-                    <ReadOnlyField label="Field" value={field} />
-                    <ReadOnlyField label="Preferred language" value={language} />
-                    <ReadOnlyField label="Mentor" value={mentor} />
-                  </div>
-                ) : (
-                  <>
-                    {prefillField ? (
-                      <ReadOnlyField label="Field" value={field} />
-                    ) : (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Field<span className="text-red-400">*</span></label>
-                        <select
-                          value={field}
-                          onChange={(e) => {
-                            setField(e.target.value);
-                            setLanguage("");
-                            setMentor("");
-                          }}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
-                        >
-                          <option value="">Select a field…</option>
-                          {FIELDS.map((f) => (
-                            <option key={f} value={f}>
-                              {f}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {prefillLanguage ? (
-                      <ReadOnlyField label="Preferred language" value={language} />
-                    ) : (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Preferred language<span className="text-red-400">*</span></label>
-                        <select
-                          value={language}
-                          onChange={(e) => {
-                            setLanguage(e.target.value);
-                            setMentor("");
-                          }}
-                          disabled={!field}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="">{field ? "Choose a language…" : "Select a field first…"}</option>
-                          {availableLanguages.map((lang) => (
-                            <option key={lang} value={lang}>
-                              {lang}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {prefillMentor ? (
-                      <ReadOnlyField label="Mentor" value={mentor} />
-                    ) : (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Mentor<span className="text-red-400">*</span></label>
-                        <select
-                          value={mentor}
-                          onChange={(e) => setMentor(e.target.value)}
-                          disabled={!language}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="">{language ? "Choose a mentor…" : "Select a language first…"}</option>
-                          {availableMentors.map((m) => (
-                            <option key={m.name} value={m.name}>
-                              {m.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                <div className="border-t border-gray-100 pt-5 space-y-4">
-                  <SectionTitle number="3" title="Prepare your session" />
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Your top 3 questions <span className="text-red-400">*</span>
-                    </label>
-                    <p className="text-xs text-gray-400 mb-2">At least one question is required.</p>
-
-                    <div className="space-y-2">
-                      {questions.map((q, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <span className="mt-3 text-xs font-medium text-gray-400 w-4 shrink-0">{i + 1}.</span>
-                          <input
-                            type="text"
-                            value={q}
-                            onChange={(e) => {
-                              const updated = [...questions];
-                              updated[i] = e.target.value;
-                              setQuestions(updated);
-                            }}
-                            placeholder={`Question ${i + 1}${i === 0 ? " (required)" : " (optional)"}`}
-                            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Main goal for the session <span className="text-red-400">*</span>
-                    </label>
-                    <textarea
-                      value={goal}
-                      onChange={(e) => setGoal(e.target.value)}
-                      placeholder="What do you want to achieve or walk away with after this session?"
-                      rows={3}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-100 pt-5 space-y-3">
-                  <SectionTitle number="4" title="Supporting documents" />
-
-                  {docHint && (
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                      <svg className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="16" x2="12" y2="12" />
-                        <line x1="12" y1="8" x2="12.01" y2="8" />
-                      </svg>
-                      <p className="text-xs text-blue-700">{docHint}</p>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Document link <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={docLink}
-                      onChange={(e) => setDocLink(e.target.value)}
-                      placeholder="e.g. Google Drive, Notion, Figma, LinkedIn URL…"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
-                    />
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-100 pt-5">
-                  <label className="flex items-start gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={confirmed}
-                      onChange={(e) => setConfirmed(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
-                    />
-                    <span className="text-sm text-gray-600 leading-snug group-hover:text-gray-800 transition">
-                      <span className="text-red-400 mr-1">*</span>
-                      I confirm that I have provided all required information, have read the{" "}
-                      <a
-                        href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline font-medium text-gray-900"
-                      >
-                        Mentee Agreement
-                      </a>
-                      , and understand the session expectations.
-                    </span>
-                  </label>
-                </div>
-
-                {submitError && <AlertBox type="error">{submitError}</AlertBox>}
-
-                <button
-                  onClick={handleSubmit}
-                  disabled={!canSubmit}
-                  className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {submitting ? <Spinner /> : "Submit request"}
-                </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setResult(null);
+                    setError(null);
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && isValidEmail && !loading && checkEligibility()}
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
+                />
               </div>
-            </div>
-          )}
 
-          {submitted && (
+              <button
+                onClick={checkEligibility}
+                disabled={loading || !isValidEmail}
+                className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? <Spinner /> : "Check eligibility"}
+              </button>
+
+              {error && <AlertBox type="error">{error}</AlertBox>}
+
+              {result && !result.eligible && (
+                <AlertBox type="warning">
+                  <p className="font-medium">You are not eligible to book a session at this time.</p>
+                  {result.reason && <p className="mt-1">{result.reason}</p>}
+                </AlertBox>
+              )}
+
+              {result && result.eligible && (
+                <div className="space-y-5 pt-2">
+                  <AlertBox type="success">
+                    <p className="font-medium">You are eligible!</p>
+                    <p className="mt-0.5 text-xs">
+                      Your <span className="font-semibold capitalize">{result.plan}</span> plan gives you access to{" "}
+                      <span className="font-semibold">{SESSION_INFO[result.plan]}</span>.
+                    </p>
+                  </AlertBox>
+
+                  <div className="border-t border-gray-100 pt-5 space-y-5">
+                    <SectionTitle number="2" title="Select your mentor" />
+
+                    {bothPrefilled ? (
+                      <div className="space-y-3">
+                        <ReadOnlyField label="Field" value={field} />
+                        <ReadOnlyField label="Preferred language" value={language} />
+                        <ReadOnlyField label="Mentor" value={mentor} />
+                      </div>
+                    ) : (
+                      <>
+                        {prefillField ? (
+                          <ReadOnlyField label="Field" value={field} />
+                        ) : (
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">Field<span className="text-red-400">*</span></label>
+                            <select
+                              value={field}
+                              onChange={(e) => {
+                                setField(e.target.value);
+                                setLanguage("");
+                                setMentor("");
+                              }}
+                              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
+                            >
+                              <option value="">Select a field…</option>
+                              {FIELDS.map((f) => (
+                                <option key={f} value={f}>
+                                  {f}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Preferred language<span className="text-red-400">*</span></label>
+                          <select
+                            value={language}
+                            onChange={(e) => {
+                              setLanguage(e.target.value);
+                              setMentor("");
+                            }}
+                            disabled={!field}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <option value="">{field ? "Choose a language…" : "Select a field first…"}</option>
+                            {availableLanguages.map((lang) => (
+                              <option key={lang} value={lang}>
+                                {lang}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Mentor<span className="text-red-400">*</span></label>
+                          <select
+                            value={mentor}
+                            onChange={(e) => setMentor(e.target.value)}
+                            disabled={!language}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <option value="">{language ? "Choose a mentor…" : "Select a language first…"}</option>
+                            {availableMentors.map((m) => (
+                              <option key={m.name} value={m.name}>
+                                {m.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="border-t border-gray-100 pt-5 space-y-4">
+                      <SectionTitle number="3" title="Prepare your session" />
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Your top 3 questions <span className="text-red-400">*</span>
+                        </label>
+                        <p className="text-xs text-gray-400 mb-2">At least one question is required.</p>
+
+                        <div className="space-y-2">
+                          {questions.map((q, i) => (
+                            <div key={i} className="flex items-start gap-2">
+                              <span className="mt-3 text-xs font-medium text-gray-400 w-4 shrink-0">{i + 1}.</span>
+                              <input
+                                type="text"
+                                value={q}
+                                onChange={(e) => {
+                                  const updated = [...questions];
+                                  updated[i] = e.target.value;
+                                  setQuestions(updated);
+                                }}
+                                placeholder={`Question ${i + 1}${i === 0 ? " (required)" : " (optional)"}`}
+                                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Main goal for the session <span className="text-red-400">*</span>
+                        </label>
+                        <textarea
+                          value={goal}
+                          onChange={(e) => setGoal(e.target.value)}
+                          placeholder="What do you want to achieve or walk away with after this session?"
+                          rows={3}
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition resize-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-5 space-y-3">
+                      <SectionTitle number="4" title="Supporting documents" />
+
+                      {docHint && (
+                        <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                          <svg className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="16" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12.01" y2="8" />
+                          </svg>
+                          <p className="text-xs text-blue-700">{docHint}</p>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Document link <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={docLink}
+                          onChange={(e) => setDocLink(e.target.value)}
+                          placeholder="e.g. Google Drive, Notion, Figma, LinkedIn URL…"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-5">
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={confirmed}
+                          onChange={(e) => setConfirmed(e.target.checked)}
+                          className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
+                        />
+                        <span className="text-sm text-gray-600 leading-snug group-hover:text-gray-800 transition">
+                          <span className="text-red-400 mr-1">*</span>
+                          I confirm that I have provided all required information, have read the{" "}
+                          <a
+                            href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline font-medium text-gray-900"
+                          >
+                            Mentee Agreement
+                          </a>
+                          , and understand the session expectations.
+                        </span>
+                      </label>
+                    </div>
+
+                    <button
+                      onClick={handleSubmit}
+                      disabled={!canSubmit}
+                      className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {submitting ? <Spinner /> : "Submit request"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
             <AlertBox type="success">
               Your request has been submitted. The mentor will review it within 48 hours.
             </AlertBox>
@@ -508,14 +490,14 @@ export default function Home() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-  Have questions? Reach out to{" "}
-  <a 
-    href="mailto:mentorship@takadao.io" 
-    className="underline hover:text-gray-600 transition-colors"
-  >
-    mentorship@takadao.io
-  </a>
-</p>
+          Have questions? Reach out to{" "}
+          <a
+            href="mailto:mentorship@takadao.io"
+            className="underline hover:text-gray-600 transition-colors"
+          >
+            mentorship@takadao.io
+          </a>
+        </p>
       </div>
     </div>
   );
