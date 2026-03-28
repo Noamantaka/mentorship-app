@@ -254,24 +254,34 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-5">
-          <SectionTitle number="1" title="Check your eligibility" />
+        {!submitted && (
+  <>
+    <SectionTitle number="1" title="Check your eligibility" />
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          setResult(null);
+          setError(null);
+        }}
+        onKeyDown={(e) => e.key === "Enter" && isValidEmail && !loading && checkEligibility()}
+        placeholder="you@example.com"
+        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
+      />
+    </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setResult(null);
-                setError(null);
-              }}
-              onKeyDown={(e) => e.key === "Enter" && isValidEmail && !loading && checkEligibility()}
-              placeholder="you@example.com"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
-            />
-          </div>
+    <button
+      onClick={checkEligibility}
+      disabled={loading || !isValidEmail}
+      className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    >
+      {loading ? <Spinner /> : "Check eligibility"}
+    </button>
+  </>
+)}
 
           <button
             onClick={checkEligibility}
