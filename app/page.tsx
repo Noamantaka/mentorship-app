@@ -6,10 +6,26 @@ const API_ENDPOINT = "https://REPLACE_ME/check-eligibility";
 const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbwC33mWE_c2fpBMHzj3BsctNeE_zEZwkGOLGefu15Werwc3V2OwouEGGsRNrD0NNE4W/exec";
 
 const FIELD_MENTORS = {
-  "Finance Literacy & Crypto": ["Farha KIRUBI", "Samuel VERDON", "Dr Nouran Saeed"],
-  "Career Accelerator": ["Asma CHAUDHRY", "Sarah BRABRA", "Huda PARVEZ"],
-  "Hijra": ["Yanis DJERBI", "Olivier THOMAS", "Leila NGOULOURE"],
-  "Entrepreneurship": ["Sharene Lee", "Morrad Irsane", "Zohaib AHMAD", "Salman WASIM"],
+  "Finance Literacy & Crypto": [
+    { name: "Farha KIRUBI", languages: ["English"] },
+    { name: "Samuel VERDON", languages: ["French"] },
+    { name: "Dr Nouran", languages: ["English"] },
+  ],
+  "Career Accelerator": [
+    { name: "Asma CHAUDHRY", languages: ["English", "Urdu"] },
+    { name: "Sarah BRABRA", languages: ["French", "English"] },
+    { name: "Huda PARVEZ", languages: ["English"] },
+  ],
+  "Hijra": [
+    { name: "Yanis DJERBI", languages: ["French"] },
+    { name: "Leila NGOULOURE", languages: ["French", "English"] },
+  ],
+  "Entrepreneurship": [
+    { name: "Sharene Lee", languages: ["English"] },
+    { name: "Morrad Irsane", languages: ["English", "French"] },
+    { name: "Zohaib AHMAD", languages: ["English"] },
+    { name: "Salman WASIM", languages: ["French"] },
+  ],
 };
 
 const FIELD_DOC_HINT = {
@@ -41,15 +57,28 @@ function matchField(param: string | null) {
   );
 }
 
+function matchLanguage(field: string, param: string | null) {
+  if (!field || !param) return "";
+  const mentors = FIELD_MENTORS[field as keyof typeof FIELD_MENTORS] ?? [];
+  const languages = Array.from(new Set(mentors.flatMap((m) => m.languages)));
+  return (
+    languages.find(
+      (lang) =>
+        normalizeParam(lang).includes(normalizeParam(param)) ||
+        normalizeParam(param).includes(normalizeParam(lang))
+    ) ?? ""
+  );
+}
+
 function matchMentor(field: string, param: string | null) {
   if (!field || !param) return "";
   const mentors = FIELD_MENTORS[field as keyof typeof FIELD_MENTORS] ?? [];
   return (
     mentors.find(
       (m) =>
-        normalizeParam(m).includes(normalizeParam(param)) ||
-        normalizeParam(param).includes(normalizeParam(m).split(" ")[0])
-    ) ?? ""
+        normalizeParam(m.name).includes(normalizeParam(param)) ||
+        normalizeParam(param).includes(normalizeParam(m.name).split(" ")[0])
+    )?.name ?? ""
   );
 }
 
@@ -60,6 +89,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const [field, setField] = useState("");
+  const [language, setLanguage] = useState("");
   const [mentor, setMentor] = useState("");
   const [questions, setQuestions] = useState(["", "", ""]);
   const [goal, setGoal] = useState("");
@@ -71,23 +101,32 @@ export default function Home() {
   const [submitted, setSubmitted] = useState(false);
 
   const [prefillField, setPrefillField] = useState("");
+  const [prefillLanguage, setPrefillLanguage] = useState("");
   const [prefillMentor, setPrefillMentor] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const pf = matchField(params.get("field"));
+    const pl = matchLanguage(pf, params.get("language"));
     const pm = matchMentor(pf, params.get("mentor"));
+
     if (pf) {
       setPrefillField(pf);
       setField(pf);
     }
+
+    if (pl) {
+      setPrefillLanguage(pl);
+      setLanguage(pl);
+    }
+
     if (pm) {
       setPrefillMentor(pm);
       setMentor(pm);
     }
   }, []);
 
-  const bothPrefilled = !!prefillField && !!prefillMentor;
+  const bothPrefilled = !!prefillField && !!prefillLanguage && !!prefillMentor;
 
   const getMockResult = () => {
     if (email.endsWith("@test.com")) {
@@ -103,6 +142,7 @@ export default function Home() {
     setConfirmed(false);
     setSubmitted(false);
     if (!prefillField) setField("");
+    if (!prefillLanguage) setLanguage("");
     if (!prefillMentor) setMentor("");
   };
 
@@ -141,6 +181,7 @@ export default function Home() {
     const params = new URLSearchParams({
       email,
       field,
+      language,
       mentor,
       question_1: questions[0],
       question_2: questions[1],
@@ -168,26 +209,27 @@ export default function Home() {
   };
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const availableMentors = field ? FIELD_MENTORS[field as keyof typeof FIELD_MENTORS] ?? [] : [];
+  const mentorsForField = field ? FIELD_MENTORS[field as keyof typeof FIELD_MENTORS] ?? [] : [];
+  const availableLanguages = Array.from(new Set(mentorsForField.flatMap((m) => m.languages)));
+  const availableMentors = language
+    ? mentorsForField.filter((m) => m.languages.includes(language))
+    : [];
   const docHint = field ? FIELD_DOC_HINT[field as keyof typeof FIELD_DOC_HINT] : null;
   const questionsValid = questions.some((q) => q.trim().length > 0);
   const canSubmit =
-    field && mentor && questionsValid && goal.trim() && docLink.trim() && confirmed && !submitting;
+    field && language && mentor && questionsValid && goal.trim() && docLink.trim() && confirmed && !submitting;
 
   return (
-<div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center px-4 py-12">
-
-  <div className="w-full max-w-lg">
-
-    <div className="mb-10 text-center">
-
-      <div className="mb-6 flex justify-center">
-        <img
-          src="https://thelifedao.io/logos/life-logo.svg"
-          alt="LifeDAO Logo"
-          className="h-20 object-contain"
-        />
-      </div>
+    <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-lg">
+        <div className="mb-10 text-center">
+          <div className="mb-6 flex justify-center">
+            <img
+              src="https://thelifedao.io/logos/life-logo.svg"
+              alt="LifeDAO Logo"
+              className="h-20 object-contain"
+            />
+          </div>
 
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Book your mentoring session</h1>
 
@@ -264,6 +306,7 @@ export default function Home() {
                 {bothPrefilled ? (
                   <div className="space-y-3">
                     <ReadOnlyField label="Field" value={field} />
+                    <ReadOnlyField label="Preferred language" value={language} />
                     <ReadOnlyField label="Mentor" value={mentor} />
                   </div>
                 ) : (
@@ -277,6 +320,7 @@ export default function Home() {
                           value={field}
                           onChange={(e) => {
                             setField(e.target.value);
+                            setLanguage("");
                             setMentor("");
                           }}
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
@@ -291,6 +335,30 @@ export default function Home() {
                       </div>
                     )}
 
+                    {prefillLanguage ? (
+                      <ReadOnlyField label="Preferred language" value={language} />
+                    ) : (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Preferred language<span className="text-red-400">*</span></label>
+                        <select
+                          value={language}
+                          onChange={(e) => {
+                            setLanguage(e.target.value);
+                            setMentor("");
+                          }}
+                          disabled={!field}
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">{field ? "Choose a language…" : "Select a field first…"}</option>
+                          {availableLanguages.map((lang) => (
+                            <option key={lang} value={lang}>
+                              {lang}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
                     {prefillMentor ? (
                       <ReadOnlyField label="Mentor" value={mentor} />
                     ) : (
@@ -299,13 +367,13 @@ export default function Home() {
                         <select
                           value={mentor}
                           onChange={(e) => setMentor(e.target.value)}
-                          disabled={!field}
+                          disabled={!language}
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <option value="">{field ? "Choose a mentor…" : "Select a field first…"}</option>
+                          <option value="">{language ? "Choose a mentor…" : "Select a language first…"}</option>
                           {availableMentors.map((m) => (
-                            <option key={m} value={m}>
-                              {m}
+                            <option key={m.name} value={m.name}>
+                              {m.name}
                             </option>
                           ))}
                         </select>
@@ -385,29 +453,29 @@ export default function Home() {
                   </div>
                 </div>
 
-<div className="border-t border-gray-100 pt-5">
-  <label className="flex items-start gap-3 cursor-pointer group">
-    <input
-      type="checkbox"
-      checked={confirmed}
-      onChange={(e) => setConfirmed(e.target.checked)}
-      className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
-    />
-    <span className="text-sm text-gray-600 leading-snug group-hover:text-gray-800 transition">
-  <span className="text-red-400 mr-1">*</span>
-  I confirm that I have provided all required information, have read the{" "}
-  <a
-    href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="underline font-medium text-gray-900"
-  >
-    Mentee Agreement
-  </a>
-  , and understand the session expectations.
-</span>
-  </label>
-</div>
+                <div className="border-t border-gray-100 pt-5">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={confirmed}
+                      onChange={(e) => setConfirmed(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
+                    />
+                    <span className="text-sm text-gray-600 leading-snug group-hover:text-gray-800 transition">
+                      <span className="text-red-400 mr-1">*</span>
+                      I confirm that I have provided all required information, have read the{" "}
+                      <a
+                        href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline font-medium text-gray-900"
+                      >
+                        Mentee Agreement
+                      </a>
+                      , and understand the session expectations.
+                    </span>
+                  </label>
+                </div>
 
                 {submitError && <AlertBox type="error">{submitError}</AlertBox>}
 
