@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "LifeDAO Mentorship",
   description: "Book your mentoring session with LifeDAO experts",
+  icons: {
+    icon: "https://thelifedao.io/logos/life-logo.svg", // اللينك بتاعك هنا
+  },
 };
 
 export default function RootLayout({
