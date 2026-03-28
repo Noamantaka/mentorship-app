@@ -498,8 +498,14 @@ export default function Home() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          Have questions? Reach out to your program coordinator.
-        </p>
+  Have questions? Reach out to{" "}
+  <a 
+    href="mailto:mentorship@takadao.io" 
+    className="underline hover:text-gray-600 transition-colors"
+  >
+    mentorship@takadao.io
+  </a>
+</p>
       </div>
     </div>
   );
