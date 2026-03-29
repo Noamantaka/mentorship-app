@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const API_ENDPOINT = "https://lifedao.io/api/v2/data/consultation-session";
+const API_ENDPOINT = "https://thelifedao.io/api/v2/data/consultation-session";
 const API_SECRET_KEY = "gbj7utJduzEiu8FXwDQGTP06fTsBoCtm";
 const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbycodw8q2aMWGecIe2gEj3drEcR2MYY11KJjLJrqbXNxV7-m1dxX_XZTSiDN9L8yr9Z/exec";
 
