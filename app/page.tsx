@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const API_ENDPOINT = "https://thelifedao.io/api/v2/data/consultation-session";
-const API_SECRET_KEY = "gbj7utJduzEiu8FXwDQGTP06fTsBoCtm";
 const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbycodw8q2aMWGecIe2gEj3drEcR2MYY11KJjLJrqbXNxV7-m1dxX_XZTSiDN9L8yr9Z/exec";
 
 const FIELD_MENTORS = {
@@ -98,7 +96,6 @@ export default function Home() {
   const [confirmed, setConfirmed] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   const [prefillField, setPrefillField] = useState("");
@@ -136,11 +133,7 @@ export default function Home() {
       setError(null);
       resetForm();
 
-      const url = new URL(API_ENDPOINT);
-      url.searchParams.append("key", API_SECRET_KEY);
-      url.searchParams.append("email", email);
-
-      const res = await fetch(url.toString(), {
+      const res = await fetch(`/api/check-eligibility?email=${encodeURIComponent(email)}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -167,7 +160,6 @@ export default function Home() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    setSubmitError(null);
 
     const params = new URLSearchParams({
       email,
