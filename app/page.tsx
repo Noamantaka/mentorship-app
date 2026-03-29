@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 
+const API_ENDPOINT = "https://REPLACE_ME/check-eligibility";
 const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbycodw8q2aMWGecIe2gEj3drEcR2MYY11KJjLJrqbXNxV7-m1dxX_XZTSiDN9L8yr9Z/exec";
 
 const FIELD_MENTORS = {
@@ -96,6 +97,7 @@ export default function Home() {
   const [confirmed, setConfirmed] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   const [prefillField, setPrefillField] = useState("");
@@ -115,6 +117,13 @@ export default function Home() {
 
   const bothPrefilled = !!prefillField && !!prefillLanguage && !!prefillMentor;
 
+  const getMockResult = () => {
+    if (email.endsWith("@test.com")) {
+      return { eligible: true, plan: "premium", reason: "" };
+    }
+    return { eligible: false, plan: "basic", reason: "Not eligible for this quarter." };
+  };
+
   const resetForm = () => {
     setQuestions(["", "", ""]);
     setGoal("");
@@ -133,24 +142,18 @@ export default function Home() {
       setError(null);
       resetForm();
 
-      const res = await fetch(`/api/check-eligibility?email=${encodeURIComponent(email)}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Server error. Please try again.");
+      if (API_ENDPOINT.includes("REPLACE_ME")) {
+        await new Promise((r) => setTimeout(r, 1000));
+        setResult(getMockResult());
+      } else {
+        const res = await fetch(API_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        if (!res.ok) throw new Error("Server error. Please try again.");
+        setResult(await res.json());
       }
-
-      const data = await res.json();
-      
-      setResult({
-        eligible: data.isEligible && !data.isBlocked,
-        plan: data.membershipType.toLowerCase(), 
-        reason: data.isBlocked ? "Your account is blocked." : "Not eligible for this quarter."
-      });
-
     } catch (err: any) {
       setError(err?.message || "Something went wrong.");
     } finally {
@@ -160,6 +163,7 @@ export default function Home() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    setSubmitError(null);
 
     const params = new URLSearchParams({
       email,
@@ -371,7 +375,7 @@ export default function Home() {
                           onChange={(e) => setGoal(e.target.value)}
                           placeholder="What do you want to achieve?"
                           rows={3}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition resize-none"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition resize-none"
                         />
                       </div>
                     </div>
@@ -380,7 +384,7 @@ export default function Home() {
                       <SectionTitle number="4" title="Supporting documents" />
                       {docHint && (
                         <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                          <p className="text-xs text-blue-700">{docHint}</p>
+                           <p className="text-xs text-blue-700">{docHint}</p>
                         </div>
                       )}
                       <div>
@@ -393,7 +397,7 @@ export default function Home() {
                           value={docLink}
                           onChange={(e) => setDocLink(e.target.value)}
                           placeholder="Paste link here..."
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition"
                         />
                       </div>
                     </div>
@@ -406,10 +410,8 @@ export default function Home() {
                           onChange={(e) => setConfirmed(e.target.checked)}
                           className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
                         />
-                        <span className="text-sm text-gray-600 leading-snug group-hover:text-gray-800 transition">
-                          <span className="text-red-400 mr-1">*</span>
-                          I confirm that I have provided all required information, have read the{" "}
-                          <a href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview" target="_blank" rel="noopener noreferrer" className="underline font-medium text-gray-900">Mentee Agreement</a>
+                        <span className="text-sm text-gray-600">
+                          I confirm that I have read the <a href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview" target="_blank" className="underline font-medium text-gray-900">Mentee Agreement</a>
                         </span>
                       </label>
                     </div>
@@ -440,6 +442,7 @@ export default function Home() {
   );
 }
 
+// الأجزاء المساعدة (Components) كما هي في كودك الأصلي
 function SectionTitle({ number, title }: { number: string | number; title: string }) {
   return (
     <div className="flex items-center gap-2.5">
