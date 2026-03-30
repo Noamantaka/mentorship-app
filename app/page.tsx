@@ -41,6 +41,129 @@ const SESSION_INFO: Record<string, string> = {
   premium: "8 sessions (30 minutes each) per quarter",
 };
 
+const translations = {
+  en: {
+    title: "Book your mentoring session",
+    subtitle: "Check your eligibility and submit a session request to your mentor.",
+    basic: "Basic",
+    premium: "Premium",
+    step1: "Check your eligibility",
+    emailAddress: "Email address",
+    emailPlaceholder: "you@example.com",
+    checkEligibility: "Check eligibility",
+    serverError: "Server error. Please try again.",
+    somethingWentWrong: "Something went wrong.",
+    accountBlocked: "Your account is blocked.",
+    notEligibleQuarter: "Not eligible for this quarter.",
+    notEligibleTitle: "You are not eligible to book a session at this time.",
+    eligibleTitle: "You are eligible!",
+    eligibleText1: "Your",
+    eligibleText2: "plan gives you access to",
+    step2: "Select your mentor",
+    field: "Field",
+    preferredLanguage: "Preferred language",
+    mentor: "Mentor",
+    selectField: "Select a field…",
+    chooseLanguage: "Choose a language…",
+    selectFieldFirst: "Select a field first…",
+    chooseMentor: "Choose a mentor…",
+    selectLanguageFirst: "Select a language first…",
+    step3: "Prepare your session",
+    top3Questions: "Your top 3 questions",
+    question: "Question",
+    mainGoal: "Main goal for the session",
+    goalPlaceholder: "What do you want to achieve?",
+    step4: "Supporting documents",
+    documentLink: "Document link",
+    uploadToGoogleDrive: "Upload to Google Drive",
+    pasteLinkHere: "Paste link here...",
+    agreementText: "I confirm that I have read the",
+    menteeAgreement: "Mentee Agreement",
+    submitRequest: "Submit request",
+    submittedSuccess: "Your request has been submitted. The mentor will review it within 48 hours.",
+    footer: "Have questions? Reach out to",
+    loading: "Loading…",
+    fieldLabels: {
+      "Finance Literacy & Crypto": "Finance Literacy & Crypto",
+      "Career Accelerator": "Career Accelerator",
+      "Hijra": "Hijra",
+      "Entrepreneurship": "Entrepreneurship",
+    },
+    languageLabels: {
+      "English": "English",
+      "French": "French",
+      "Urdu": "Urdu",
+    },
+    docHints: {
+      "Career Accelerator": "Please share your CV, LinkedIn profile, or any document relevant to your goal and questions",
+      "Entrepreneurship": "Please share your pitch deck, website or video, or any document relevant to your goal and questions",
+      "Finance Literacy & Crypto": "Please share your portfolio or budget sheet, or any document relevant to your goal and questions",
+      "Hijra": "Please share your LinkedIn profile or any document relevant to your goal and questions",
+    },
+  },
+  fr: {
+    title: "Réservez votre session de mentorat",
+    subtitle: "Vérifiez votre éligibilité et envoyez une demande de session à votre mentor.",
+    basic: "Basic",
+    premium: "Premium",
+    step1: "Vérifiez votre éligibilité",
+    emailAddress: "Adresse e-mail",
+    emailPlaceholder: "vous@exemple.com",
+    checkEligibility: "Vérifier l’éligibilité",
+    serverError: "Erreur serveur. Veuillez réessayer.",
+    somethingWentWrong: "Une erreur s’est produite.",
+    accountBlocked: "Votre compte est bloqué.",
+    notEligibleQuarter: "Non éligible pour ce trimestre.",
+    notEligibleTitle: "Vous n’êtes pas éligible pour réserver une session pour le moment.",
+    eligibleTitle: "Vous êtes éligible !",
+    eligibleText1: "Votre formule",
+    eligibleText2: "vous donne accès à",
+    step2: "Choisissez votre mentor",
+    field: "Domaine",
+    preferredLanguage: "Langue préférée",
+    mentor: "Mentor",
+    selectField: "Sélectionnez un domaine…",
+    chooseLanguage: "Choisissez une langue…",
+    selectFieldFirst: "Sélectionnez d’abord un domaine…",
+    chooseMentor: "Choisissez un mentor…",
+    selectLanguageFirst: "Sélectionnez d’abord une langue…",
+    step3: "Préparez votre session",
+    top3Questions: "Vos 3 questions principales",
+    question: "Question",
+    mainGoal: "Objectif principal de la session",
+    goalPlaceholder: "Que souhaitez-vous accomplir ?",
+    step4: "Documents justificatifs",
+    documentLink: "Lien du document",
+    uploadToGoogleDrive: "Téléverser sur Google Drive",
+    pasteLinkHere: "Collez le lien ici...",
+    agreementText: "Je confirme avoir lu le",
+    menteeAgreement: "Mentee Agreement",
+    submitRequest: "Envoyer la demande",
+    submittedSuccess: "Votre demande a été envoyée. Le mentor l’examinera sous 48 heures.",
+    footer: "Des questions ? Contactez",
+    loading: "Chargement…",
+    fieldLabels: {
+      "Finance Literacy & Crypto": "Finance Literacy & Crypto",
+      "Career Accelerator": "Accélérateur de carrière",
+      "Hijra": "Hijra",
+      "Entrepreneurship": "Entrepreneuriat",
+    },
+    languageLabels: {
+      "English": "Anglais",
+      "French": "Français",
+      "Urdu": "Ourdou",
+    },
+    docHints: {
+      "Career Accelerator": "Veuillez partager votre CV, votre profil LinkedIn ou tout document pertinent pour votre objectif et vos questions",
+      "Entrepreneurship": "Veuillez partager votre pitch deck, votre site web ou vidéo, ou tout document pertinent pour votre objectif et vos questions",
+      "Finance Literacy & Crypto": "Veuillez partager votre portefeuille ou votre budget, ou tout document pertinent pour votre objectif et vos questions",
+      "Hijra": "Veuillez partager votre profil LinkedIn ou tout document pertinent pour votre objectif et vos questions",
+    },
+  },
+};
+
+type UILang = "en" | "fr";
+
 function normalizeParam(str: string | null | undefined) {
   return str?.toLowerCase().trim() ?? "";
 }
@@ -82,6 +205,9 @@ function matchMentor(field: string, param: string | null) {
 }
 
 export default function Home() {
+  const [uiLang, setUiLang] = useState<UILang>("en");
+  const t = translations[uiLang];
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -105,6 +231,9 @@ export default function Home() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const langParam = params.get("uiLang");
+    if (langParam === "fr") setUiLang("fr");
+
     const pf = matchField(params.get("field"));
     const pl = matchLanguage(pf, params.get("language"));
     const pm = matchMentor(pf, params.get("mentor"));
@@ -128,36 +257,36 @@ export default function Home() {
   };
 
   const checkEligibility = async () => {
-  try {
-    setLoading(true);
-    setResult(null);
-    setError(null);
-    resetForm();
+    try {
+      setLoading(true);
+      setResult(null);
+      setError(null);
+      resetForm();
 
-    const res = await fetch(`/api/check-eligibility?email=${encodeURIComponent(email)}`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
+      const res = await fetch(`/api/check-eligibility?email=${encodeURIComponent(email)}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      throw new Error(data?.message || "Server error. Please try again.");
+      if (!res.ok) {
+        throw new Error(data?.message || t.serverError);
+      }
+
+      setResult({
+        eligible: data.isEligible && !data.isBlocked,
+        plan: String(data.membershipType || "").toLowerCase(),
+        reason: data.isBlocked
+          ? t.accountBlocked
+          : t.notEligibleQuarter,
+      });
+    } catch (err: any) {
+      setError(err?.message || t.somethingWentWrong);
+    } finally {
+      setLoading(false);
     }
-
-    setResult({
-      eligible: data.isEligible && !data.isBlocked,
-      plan: String(data.membershipType || "").toLowerCase(),
-      reason: data.isBlocked
-        ? "Your account is blocked."
-        : "Not eligible for this quarter.",
-    });
-  } catch (err: any) {
-    setError(err?.message || "Something went wrong.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -174,6 +303,7 @@ export default function Home() {
       goal,
       document_link: docLink,
       plan: result?.plan || "",
+      ui_language: uiLang,
     });
 
     const timeout = new Promise((r) => setTimeout(r, 3000));
@@ -198,34 +328,67 @@ export default function Home() {
   const availableMentors = language
     ? mentorsForField.filter((m) => m.languages.includes(language))
     : [];
-  const docHint = field ? FIELD_DOC_HINT[field as keyof typeof FIELD_DOC_HINT] : null;
+  const docHint = field ? t.docHints[field as keyof typeof t.docHints] : null;
   const questionsValid = questions.some((q) => q.trim().length > 0);
   const canSubmit =
     field && language && mentor && questionsValid && goal.trim() && docLink.trim() && confirmed && !submitting;
+
+  const displayField = (value: string) =>
+    t.fieldLabels[value as keyof typeof t.fieldLabels] || value;
+
+  const displayLanguage = (value: string) =>
+    t.languageLabels[value as keyof typeof t.languageLabels] || value;
 
   return (
     <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg">
         <div className="mb-10 text-center">
+          <div className="mb-4 flex justify-end">
+            <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1">
+              <button
+                type="button"
+                onClick={() => setUiLang("en")}
+                className={`px-3 py-1.5 text-sm rounded-lg transition ${
+                  uiLang === "en"
+                    ? "bg-[#7c16ff] text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setUiLang("fr")}
+                className={`px-3 py-1.5 text-sm rounded-lg transition ${
+                  uiLang === "fr"
+                    ? "bg-[#7c16ff] text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                FR
+              </button>
+            </div>
+          </div>
+
           <div className="mb-6 flex justify-center">
             <img src="https://thelifedao.io/logos/life-logo.svg" alt="LifeDAO Logo" className="h-20 object-contain" />
           </div>
 
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Book your mentoring session</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t.title}</h1>
 
           <p className="mt-3 text-gray-500 text-sm leading-relaxed">
-            Check your eligibility and submit a session request to your mentor.
+            {t.subtitle}
           </p>
 
           <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-xs text-gray-600">
               <span className="w-1.5 h-1.5 rounded-full bg-[#bb87ff] shrink-0"></span>
-              <span><span className="font-medium text-gray-800">Basic</span> — {SESSION_INFO.basic}</span>
+              <span><span className="font-medium text-gray-800">{t.basic}</span> — {SESSION_INFO.basic}</span>
             </div>
 
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-xs text-gray-600">
               <span className="w-1.5 h-1.5 rounded-full bg-[#7c16ff] shrink-0"></span>
-              <span><span className="font-medium text-gray-800">Premium</span> — {SESSION_INFO.premium}</span>
+              <span><span className="font-medium text-gray-800">{t.premium}</span> — {SESSION_INFO.premium}</span>
             </div>
           </div>
         </div>
@@ -233,10 +396,10 @@ export default function Home() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-5">
           {!submitted ? (
             <>
-              <SectionTitle number="1" title="Check your eligibility" />
+              <SectionTitle number="1" title={t.step1} />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.emailAddress}</label>
                 <input
                   type="email"
                   value={email}
@@ -246,7 +409,7 @@ export default function Home() {
                     setError(null);
                   }}
                   onKeyDown={(e) => e.key === "Enter" && isValidEmail && !loading && checkEligibility()}
-                  placeholder="you@example.com"
+                  placeholder={t.emailPlaceholder}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
                 />
               </div>
@@ -256,14 +419,14 @@ export default function Home() {
                 disabled={loading || !isValidEmail}
                 className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? <Spinner /> : "Check eligibility"}
+                {loading ? <Spinner text={t.loading} /> : t.checkEligibility}
               </button>
 
               {error && <AlertBox type="error">{error}</AlertBox>}
 
               {result && !result.eligible && (
                 <AlertBox type="warning">
-                  <p className="font-medium">You are not eligible to book a session at this time.</p>
+                  <p className="font-medium">{t.notEligibleTitle}</p>
                   {result.reason && <p className="mt-1">{result.reason}</p>}
                 </AlertBox>
               )}
@@ -271,26 +434,26 @@ export default function Home() {
               {result && result.eligible && (
                 <div className="space-y-5 pt-2">
                   <AlertBox type="success">
-                    <p className="font-medium">You are eligible!</p>
+                    <p className="font-medium">{t.eligibleTitle}</p>
                     <p className="mt-0.5 text-xs">
-                      Your <span className="font-semibold capitalize">{result.plan}</span> plan gives you access to{" "}
+                      {t.eligibleText1} <span className="font-semibold capitalize">{result.plan}</span> {t.eligibleText2}{" "}
                       <span className="font-semibold">{SESSION_INFO[result.plan]}</span>.
                     </p>
                   </AlertBox>
 
                   <div className="border-t border-gray-100 pt-5 space-y-5">
-                    <SectionTitle number="2" title="Select your mentor" />
+                    <SectionTitle number="2" title={t.step2} />
 
                     {bothPrefilled ? (
                       <div className="space-y-3">
-                        <ReadOnlyField label="Field" value={field} />
-                        <ReadOnlyField label="Preferred language" value={language} />
-                        <ReadOnlyField label="Mentor" value={mentor} />
+                        <ReadOnlyField label={t.field} value={displayField(field)} />
+                        <ReadOnlyField label={t.preferredLanguage} value={displayLanguage(language)} />
+                        <ReadOnlyField label={t.mentor} value={mentor} />
                       </div>
                     ) : (
                       <>
                         <div>
-                          <label className="text-sm font-medium text-gray-700">Field<span className="text-red-400">*</span></label>
+                          <label className="text-sm font-medium text-gray-700">{t.field}<span className="text-red-400">*</span></label>
                           <select
                             value={field}
                             onChange={(e) => {
@@ -300,15 +463,15 @@ export default function Home() {
                             }}
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
                           >
-                            <option value="">Select a field…</option>
+                            <option value="">{t.selectField}</option>
                             {FIELDS.map((f) => (
-                              <option key={f} value={f}>{f}</option>
+                              <option key={f} value={f}>{displayField(f)}</option>
                             ))}
                           </select>
                         </div>
 
                         <div>
-                          <label className="text-sm font-medium text-gray-700">Preferred language<span className="text-red-400">*</span></label>
+                          <label className="text-sm font-medium text-gray-700">{t.preferredLanguage}<span className="text-red-400">*</span></label>
                           <select
                             value={language}
                             onChange={(e) => {
@@ -318,22 +481,22 @@ export default function Home() {
                             disabled={!field}
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <option value="">{field ? "Choose a language…" : "Select a field first…"}</option>
+                            <option value="">{field ? t.chooseLanguage : t.selectFieldFirst}</option>
                             {availableLanguages.map((lang) => (
-                              <option key={lang} value={lang}>{lang}</option>
+                              <option key={lang} value={lang}>{displayLanguage(lang)}</option>
                             ))}
                           </select>
                         </div>
 
                         <div>
-                          <label className="text-sm font-medium text-gray-700">Mentor<span className="text-red-400">*</span></label>
+                          <label className="text-sm font-medium text-gray-700">{t.mentor}<span className="text-red-400">*</span></label>
                           <select
                             value={mentor}
                             onChange={(e) => setMentor(e.target.value)}
                             disabled={!language}
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <option value="">{language ? "Choose a mentor…" : "Select a language first…"}</option>
+                            <option value="">{language ? t.chooseMentor : t.selectLanguageFirst}</option>
                             {availableMentors.map((m) => (
                               <option key={m.name} value={m.name}>{m.name}</option>
                             ))}
@@ -343,9 +506,9 @@ export default function Home() {
                     )}
 
                     <div className="border-t border-gray-100 pt-5 space-y-4">
-                      <SectionTitle number="3" title="Prepare your session" />
+                      <SectionTitle number="3" title={t.step3} />
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Your top 3 questions <span className="text-red-400">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.top3Questions} <span className="text-red-400">*</span></label>
                         <div className="space-y-2">
                           {questions.map((q, i) => (
                             <div key={i} className="flex items-start gap-2">
@@ -358,7 +521,7 @@ export default function Home() {
                                   updated[i] = e.target.value;
                                   setQuestions(updated);
                                 }}
-                                placeholder={`Question ${i + 1}`}
+                                placeholder={`${t.question} ${i + 1}`}
                                 className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition"
                               />
                             </div>
@@ -367,11 +530,11 @@ export default function Home() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Main goal for the session <span className="text-red-400">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.mainGoal} <span className="text-red-400">*</span></label>
                         <textarea
                           value={goal}
                           onChange={(e) => setGoal(e.target.value)}
-                          placeholder="What do you want to achieve?"
+                          placeholder={t.goalPlaceholder}
                           rows={3}
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition resize-none"
                         />
@@ -379,7 +542,7 @@ export default function Home() {
                     </div>
 
                     <div className="border-t border-gray-100 pt-5 space-y-3">
-                      <SectionTitle number="4" title="Supporting documents" />
+                      <SectionTitle number="4" title={t.step4} />
                       {docHint && (
                         <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
                            <p className="text-xs text-blue-700">{docHint}</p>
@@ -387,14 +550,14 @@ export default function Home() {
                       )}
                       <div>
                         <div className="flex justify-between items-end mb-1.5">
-                          <label className="block text-sm font-medium text-gray-700">Document link <span className="text-red-400">*</span></label>
-                          <a href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#7c16ff] hover:underline">Upload to Google Drive</a>
+                          <label className="block text-sm font-medium text-gray-700">{t.documentLink} <span className="text-red-400">*</span></label>
+                          <a href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#7c16ff] hover:underline">{t.uploadToGoogleDrive}</a>
                         </div>
                         <input
                           type="text"
                           value={docLink}
                           onChange={(e) => setDocLink(e.target.value)}
-                          placeholder="Paste link here..."
+                          placeholder={t.pasteLinkHere}
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition"
                         />
                       </div>
@@ -409,17 +572,19 @@ export default function Home() {
                           className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
                         />
                         <span className="text-sm text-gray-600">
-                          I confirm that I have read the <a href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview" target="_blank" className="underline font-medium text-gray-900">Mentee Agreement</a>
+                          {t.agreementText} <a href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview" target="_blank" rel="noopener noreferrer" className="underline font-medium text-gray-900">{t.menteeAgreement}</a>
                         </span>
                       </label>
                     </div>
+
+                    {submitError && <AlertBox type="error">{submitError}</AlertBox>}
 
                     <button
                       onClick={handleSubmit}
                       disabled={!canSubmit}
                       className="w-full py-3 px-6 rounded-xl bg-[#7c16ff] text-white text-sm font-medium transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      {submitting ? <Spinner /> : "Submit request"}
+                      {submitting ? <Spinner text={t.loading} /> : t.submitRequest}
                     </button>
                   </div>
                 </div>
@@ -427,20 +592,19 @@ export default function Home() {
             </>
           ) : (
             <AlertBox type="success">
-              Your request has been submitted. The mentor will review it within 48 hours.
+              {t.submittedSuccess}
             </AlertBox>
           )}
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          Have questions? Reach out to <a href="mailto:mentorship@takadao.io" className="underline hover:text-gray-600 transition-colors">mentorship@takadao.io</a>
+          {t.footer} <a href="mailto:mentorship@takadao.io" className="underline hover:text-gray-600 transition-colors">mentorship@takadao.io</a>
         </p>
       </div>
     </div>
   );
 }
 
-// الأجزاء المساعدة (Components) كما هي في كودك الأصلي
 function SectionTitle({ number, title }: { number: string | number; title: string }) {
   return (
     <div className="flex items-center gap-2.5">
@@ -474,11 +638,11 @@ function AlertBox({ type, children }: { type: "error" | "warning" | "success" | 
   );
 }
 
-function Spinner() {
+function Spinner({ text = "Loading…" }: { text?: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-      <span>Loading…</span>
+      <span>{text}</span>
     </div>
   );
 }
