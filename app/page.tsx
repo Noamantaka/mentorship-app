@@ -59,6 +59,8 @@ const translations = {
     checkEligibility: "Check eligibility",
     serverError: "Server error. Please try again.",
     somethingWentWrong: "Something went wrong.",
+    errorUserNotFound: "We couldn't find your account. Please check your email.",
+    errorMembershipFailed: "We couldn't load your membership details. Try again.",
     accountBlocked: "Your account is blocked.",
     notEligibleQuarter: "Not eligible for this quarter.",
     notEligibleTitle: "You are not eligible to book a session at this time.",
@@ -118,6 +120,8 @@ const translations = {
     checkEligibility: "Vérifier l’éligibilité",
     serverError: "Erreur serveur. Veuillez réessayer.",
     somethingWentWrong: "Une erreur s’est produite.",
+    errorUserNotFound: "Nous n’avons pas trouvé votre compte. Vérifiez votre e-mail.",
+    errorMembershipFailed: "Impossible de charger les détails de votre abonnement. Réessayez.",
     accountBlocked: "Votre compte est bloqué.",
     notEligibleQuarter: "Non éligible pour ce trimestre.",
     notEligibleTitle: "Vous n’êtes pas éligible pour réserver une session pour le moment.",
@@ -210,6 +214,15 @@ function matchMentor(field: string, param: string | null) {
   );
 }
 
+const getFriendlyError = (message: string, t: any) => {
+  const msg = message.toLowerCase();
+
+  if (msg.includes("user information")) return t.errorUserNotFound;
+  if (msg.includes("membership")) return t.errorMembershipFailed;
+
+  return t.somethingWentWrong;
+};
+
 export default function Home() {
   const [uiLang, setUiLang] = useState<UILang>("en");
   const t = translations[uiLang];
@@ -288,7 +301,8 @@ export default function Home() {
           : t.notEligibleQuarter,
       });
     } catch (err: any) {
-      setError(err?.message || t.somethingWentWrong);
+      const rawMessage = err?.message || "";
+      setError(getFriendlyError(rawMessage, t));
     } finally {
       setLoading(false);
     }
