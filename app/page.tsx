@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const API_ENDPOINT = "https://REPLACE_ME/check-eligibility";
 const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbycodw8q2aMWGecIe2gEj3drEcR2MYY11KJjLJrqbXNxV7-m1dxX_XZTSiDN9L8yr9Z/exec";
 
 const FIELD_MENTORS = {
@@ -117,13 +116,6 @@ export default function Home() {
 
   const bothPrefilled = !!prefillField && !!prefillLanguage && !!prefillMentor;
 
-  const getMockResult = () => {
-    if (email.endsWith("@test.com")) {
-      return { eligible: true, plan: "premium", reason: "" };
-    }
-    return { eligible: false, plan: "basic", reason: "Not eligible for this quarter." };
-  };
-
   const resetForm = () => {
     setQuestions(["", "", ""]);
     setGoal("");
@@ -136,30 +128,36 @@ export default function Home() {
   };
 
   const checkEligibility = async () => {
-    try {
-      setLoading(true);
-      setResult(null);
-      setError(null);
-      resetForm();
+  try {
+    setLoading(true);
+    setResult(null);
+    setError(null);
+    resetForm();
 
-      if (API_ENDPOINT.includes("REPLACE_ME")) {
-        await new Promise((r) => setTimeout(r, 1000));
-        setResult(getMockResult());
-      } else {
-        const res = await fetch(API_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-        if (!res.ok) throw new Error("Server error. Please try again.");
-        setResult(await res.json());
-      }
-    } catch (err: any) {
-      setError(err?.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
+    const res = await fetch(`/api/check-eligibility?email=${encodeURIComponent(email)}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.message || "Server error. Please try again.");
     }
-  };
+
+    setResult({
+      eligible: data.isEligible && !data.isBlocked,
+      plan: String(data.membershipType || "").toLowerCase(),
+      reason: data.isBlocked
+        ? "Your account is blocked."
+        : "Not eligible for this quarter.",
+    });
+  } catch (err: any) {
+    setError(err?.message || "Something went wrong.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubmit = async () => {
     setSubmitting(true);
