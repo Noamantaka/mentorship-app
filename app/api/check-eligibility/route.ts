@@ -32,30 +32,24 @@ export async function GET(req: NextRequest) {
 
     const data = await response.json();
 
-if (!response.ok) {
-  return NextResponse.json(
-    {
-      message:
-        data?.message ||
-        data?.error ||
-        "Failed to check eligibility.",
-    },
-    { status: response.status }
-  );
-}
+    if (!response.ok) {
+      return NextResponse.json(
+        {
+          message:
+            data?.message ||
+            data?.error ||
+            "Failed to check eligibility.",
+        },
+        { status: response.status }
+      );
+    }
 
-if (data?.message && (!("isEligible" in data) || !("membershipType" in data))) {
-  return NextResponse.json(
-    { message: data.message },
-    { status: 400 }
-  );
-}
-
-return NextResponse.json({
-  isEligible: data.isEligible,
-  isBlocked: data.isBlocked,
-  membershipType: data.membershipType,
-});
+    if (data?.message && (!("isEligible" in data) || !("membershipType" in data))) {
+      return NextResponse.json(
+        { message: data.message },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       isEligible: data.isEligible,
