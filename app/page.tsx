@@ -36,9 +36,15 @@ const FIELD_DOC_HINT = {
 
 const FIELDS = Object.keys(FIELD_MENTORS);
 
-const SESSION_INFO: Record<string, string> = {
-  basic: "2 sessions (30 minutes each) per quarter",
-  premium: "8 sessions (30 minutes each) per quarter",
+const SESSION_INFO = {
+  en: {
+    basic: "2 sessions (30 minutes each) per quarter",
+    premium: "8 sessions (30 minutes each) per quarter",
+  },
+  fr: {
+    basic: "2 sessions de 30 minutes par trimestre",
+    premium: "8 sessions de 30 minutes par trimestre",
+  },
 };
 
 const translations = {
@@ -383,12 +389,12 @@ export default function Home() {
           <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-xs text-gray-600">
               <span className="w-1.5 h-1.5 rounded-full bg-[#bb87ff] shrink-0"></span>
-              <span><span className="font-medium text-gray-800">{t.basic}</span> — {SESSION_INFO.basic}</span>
+              <span><span className="font-medium text-gray-800">{t.basic}</span> — {SESSION_INFO[uiLang].basic}</span>
             </div>
 
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-xs text-gray-600">
               <span className="w-1.5 h-1.5 rounded-full bg-[#7c16ff] shrink-0"></span>
-              <span><span className="font-medium text-gray-800">{t.premium}</span> — {SESSION_INFO.premium}</span>
+              <span><span className="font-medium text-gray-800">{t.premium}</span> — {SESSION_INFO[uiLang].premium}</span>
             </div>
           </div>
         </div>
@@ -437,7 +443,7 @@ export default function Home() {
                     <p className="font-medium">{t.eligibleTitle}</p>
                     <p className="mt-0.5 text-xs">
                       {t.eligibleText1} <span className="font-semibold capitalize">{result.plan}</span> {t.eligibleText2}{" "}
-                      <span className="font-semibold">{SESSION_INFO[result.plan]}</span>.
+                      <span className="font-semibold">{SESSION_INFO[uiLang][result.plan as "basic" | "premium"]}</span>.
                     </p>
                   </AlertBox>
 
