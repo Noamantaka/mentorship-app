@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbycodw8q2aMWGecIe2gEj3drEcR2MYY11KJjLJrqbXNxV7-m1dxX_XZTSiDN9L8yr9Z/exec";
+const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbxK45IY_7VVLkwNXmmgTVrlPpSt7gZtHG30o-0q0jf_leG0oqSU44WAFGcOWco4PJBy/exec";
 
 const FIELD_MENTORS = {
   "Finance Literacy & Crypto": [
