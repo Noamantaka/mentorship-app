@@ -117,7 +117,7 @@ const translations = {
     step1: "Vérifiez votre éligibilité",
     emailAddress: "Adresse e-mail",
     emailPlaceholder: "vous@exemple.com",
-    checkEligibility: "Vérifier l’éligibilité",
+    checkEligibility: "Vérifier mon éligibilité",
     serverError: "Erreur serveur. Veuillez réessayer.",
     somethingWentWrong: "Une erreur s’est produite.",
     errorUserNotFound: "Nous n’avons pas trouvé votre compte. Vérifiez votre e-mail.",
