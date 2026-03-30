@@ -153,7 +153,7 @@ const translations = {
     footer: "Des questions ? Contactez",
     loading: "Chargement…",
     fieldLabels: {
-      "Finance Literacy & Crypto": "Finance Literacy & Crypto",
+      "Finance Literacy & Crypto": "Education financière & Crypto",
       "Career Accelerator": "Accélérateur de carrière",
       "Hijra": "Hijra",
       "Entrepreneurship": "Entrepreneuriat",
@@ -166,7 +166,7 @@ const translations = {
     docHints: {
       "Career Accelerator": "Partager votre CV, votre profil LinkedIn ou tout document pertinent pour votre objectif et vos questions",
       "Entrepreneurship": "Partager votre pitch deck, votre site web ou vidéo, ou tout document pertinent pour votre objectif et vos questions",
-      "Education financière & Crypto": "Partager votre portefeuille ou votre budget, ou tout document pertinent pour votre objectif et vos questions",
+      "Finance Literacy & Crypto": "Partager votre portefeuille ou votre budget, ou tout document pertinent pour votre objectif et vos questions",
       "Hijra": "Partagez votre portefeuille ou votre budget, ou tout document pertinent pour votre objectif et vos questions",
     },
   },
