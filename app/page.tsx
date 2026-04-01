@@ -592,7 +592,7 @@ export default function Home() {
                           className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black cursor-pointer"
                         />
                         <span className="text-sm text-gray-600">
-                          {t.agreementText} <span className="text-red-400">*</span> <a href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview" target="_blank" rel="noopener noreferrer" className="underline font-medium text-gray-900">{t.menteeAgreement}</a>
+                          <span className="text-red-400">* </span>{t.agreementText} <a href="https://docs.google.com/document/d/1UnzhvBGZDzefqhHtCNKArOByVAHwfHxfYd5_3NEPc0k/preview" target="_blank" rel="noopener noreferrer" className="underline font-medium text-gray-900">{t.menteeAgreement}</a>
                         </span>
                       </label>
                     </div>
