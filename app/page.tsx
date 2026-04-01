@@ -119,12 +119,12 @@ const translations = {
     emailPlaceholder: "vous@exemple.com",
     checkEligibility: "Vérifier mon éligibilité",
     serverError: "Erreur serveur. Veuillez réessayer.",
-    somethingWentWrong: "Une erreur s’est produite.",
-    errorUserNotFound: "Nous n’avons pas trouvé votre compte. Vérifiez votre e-mail.",
+    somethingWentWrong: "Une erreur s'est produite.",
+    errorUserNotFound: "Nous n'avons pas trouvé votre compte. Vérifiez votre e-mail.",
     errorMembershipFailed: "Impossible de charger les détails de votre abonnement. Réessayez.",
     accountBlocked: "Votre compte est bloqué.",
     notEligibleQuarter: "Non éligible pour ce trimestre.",
-    notEligibleTitle: "Vous n’êtes pas éligible pour réserver une session pour le moment.",
+    notEligibleTitle: "Vous n'êtes pas éligible pour réserver une session pour le moment.",
     eligibleTitle: "Vous êtes éligible !",
     eligibleText1: "Votre formule",
     eligibleText2: "vous donne accès à",
@@ -134,9 +134,9 @@ const translations = {
     mentor: "Mentor",
     selectField: "Sélectionnez un domaine…",
     chooseLanguage: "Choisissez une langue…",
-    selectFieldFirst: "Sélectionnez d’abord un domaine…",
+    selectFieldFirst: "Sélectionnez d'abord un domaine…",
     chooseMentor: "Choisissez un mentor…",
-    selectLanguageFirst: "Sélectionnez d’abord une langue…",
+    selectLanguageFirst: "Sélectionnez d'abord une langue…",
     step3: "Préparez votre session",
     top3Questions: "Vos 3 questions principales",
     question: "Question",
@@ -149,7 +149,7 @@ const translations = {
     agreementText: "Je confirme avoir lu le",
     menteeAgreement: "Charte de mentorat",
     submitRequest: "Envoyer la demande",
-    submittedSuccess: "Votre demande a été envoyée. Le mentor l’examinera sous 48 heures.",
+    submittedSuccess: "Votre demande a été envoyée. Le mentor l'examinera sous 48 heures.",
     footer: "Des questions ? Contactez",
     loading: "Chargement…",
     fieldLabels: {
@@ -216,10 +216,8 @@ function matchMentor(field: string, param: string | null) {
 
 const getFriendlyError = (message: string, t: any) => {
   const msg = message.toLowerCase();
-
   if (msg.includes("user information")) return t.errorUserNotFound;
   if (msg.includes("membership")) return t.errorMembershipFailed;
-
   return t.somethingWentWrong;
 };
 
@@ -228,6 +226,7 @@ export default function Home() {
   const t = translations[uiLang];
 
   const [email, setEmail] = useState("");
+  const [isValidEmail, setIsValidEmail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -296,9 +295,7 @@ export default function Home() {
       setResult({
         eligible: data.isEligible && !data.isBlocked,
         plan: String(data.membershipType || "").toLowerCase(),
-        reason: data.isBlocked
-          ? t.accountBlocked
-          : t.notEligibleQuarter,
+        reason: data.isBlocked ? t.accountBlocked : t.notEligibleQuarter,
       });
     } catch (err: any) {
       const rawMessage = err?.message || "";
@@ -333,7 +330,6 @@ export default function Home() {
         method: "POST",
         body: params,
       });
-
       await Promise.race([request, timeout]);
     } catch (_) {
     } finally {
@@ -342,7 +338,6 @@ export default function Home() {
     }
   };
 
-  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const mentorsForField = field ? FIELD_MENTORS[field as keyof typeof FIELD_MENTORS] ?? [] : [];
   const availableLanguages = Array.from(new Set(mentorsForField.flatMap((m) => m.languages)));
   const availableMentors = language
@@ -369,9 +364,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setUiLang("en")}
                 className={`px-3 py-1.5 text-sm rounded-lg transition ${
-                  uiLang === "en"
-                    ? "bg-[#7c16ff] text-white"
-                    : "text-gray-600 hover:text-gray-900"
+                  uiLang === "en" ? "bg-[#7c16ff] text-white" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 EN
@@ -380,9 +373,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setUiLang("fr")}
                 className={`px-3 py-1.5 text-sm rounded-lg transition ${
-                  uiLang === "fr"
-                    ? "bg-[#7c16ff] text-white"
-                    : "text-gray-600 hover:text-gray-900"
+                  uiLang === "fr" ? "bg-[#7c16ff] text-white" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 FR
@@ -396,16 +387,13 @@ export default function Home() {
 
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t.title}</h1>
 
-          <p className="mt-3 text-gray-500 text-sm leading-relaxed">
-            {t.subtitle}
-          </p>
+          <p className="mt-3 text-gray-500 text-sm leading-relaxed">{t.subtitle}</p>
 
           <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-xs text-gray-600">
               <span className="w-1.5 h-1.5 rounded-full bg-[#bb87ff] shrink-0"></span>
               <span><span className="font-medium text-gray-800">{t.basic}</span> — {SESSION_INFO[uiLang].basic}</span>
             </div>
-
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-xs text-gray-600">
               <span className="w-1.5 h-1.5 rounded-full bg-[#7c16ff] shrink-0"></span>
               <span><span className="font-medium text-gray-800">{t.premium}</span> — {SESSION_INFO[uiLang].premium}</span>
@@ -424,7 +412,9 @@ export default function Home() {
                   type="email"
                   value={email}
                   onChange={(e) => {
-                    setEmail(e.target.value);
+                    const val = e.target.value;
+                    setEmail(val);
+                    setIsValidEmail(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));
                     setResult(null);
                     setError(null);
                   }}
@@ -565,7 +555,7 @@ export default function Home() {
                       <SectionTitle number="4" title={t.step4} />
                       {docHint && (
                         <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                           <p className="text-xs text-blue-700">{docHint}</p>
+                          <p className="text-xs text-blue-700">{docHint}</p>
                         </div>
                       )}
                       <div>
