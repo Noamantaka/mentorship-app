@@ -64,6 +64,8 @@ const translations = {
     accountBlocked: "Your account is blocked.",
     notEligibleQuarter: "Not eligible for this quarter.",
     notEligibleTitle: "You are not eligible to book a session at this time.",
+    noCreditsLeft: "You've used all your sessions for this quarter. See you next quarter!",
+    creditsRemaining: "sessions remaining this quarter",
     eligibleTitle: "You are eligible!",
     eligibleText1: "Your",
     eligibleText2: "plan gives you access to",
@@ -125,6 +127,8 @@ const translations = {
     accountBlocked: "Votre compte est bloqué.",
     notEligibleQuarter: "Non éligible pour ce trimestre.",
     notEligibleTitle: "Vous n'êtes pas éligible pour réserver une session pour le moment.",
+    noCreditsLeft: "Vous avez utilisé toutes vos sessions ce trimestre. À bientôt le trimestre prochain !",
+    creditsRemaining: "sessions restantes ce trimestre",
     eligibleTitle: "Vous êtes éligible !",
     eligibleText1: "Votre formule",
     eligibleText2: "vous donne accès à",
@@ -274,6 +278,7 @@ export default function Home() {
     if (!prefillMentor) setMentor("");
   };
 
+  // ✅ UPDATED: checkEligibility now also checks credits in the Google Sheet
   const checkEligibility = async () => {
     try {
       setLoading(true);
@@ -281,6 +286,7 @@ export default function Home() {
       setError(null);
       resetForm();
 
+      // Step 1: Check membership eligibility via existing API
       const res = await fetch(`/api/check-eligibility?email=${encodeURIComponent(email)}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -292,10 +298,33 @@ export default function Home() {
         throw new Error(data?.message || t.serverError);
       }
 
+      const isEligible = data.isEligible && !data.isBlocked;
+      const plan = String(data.membershipType || "").toLowerCase();
+
+      // If not eligible at membership level, stop here
+      if (!isEligible) {
+        setResult({
+          eligible: false,
+          plan,
+          reason: data.isBlocked ? t.accountBlocked : t.notEligibleQuarter,
+        });
+        return;
+      }
+
+      // Step 2: Check remaining credits in Google Sheet
+      const creditsRes = await fetch(
+        `${ZAPIER_WEBHOOK}?action=checkCredits&email=${encodeURIComponent(email)}&plan=${encodeURIComponent(plan)}`
+      );
+      const creditsData = await creditsRes.json();
+
       setResult({
-        eligible: data.isEligible && !data.isBlocked,
-        plan: String(data.membershipType || "").toLowerCase(),
-        reason: data.isBlocked ? t.accountBlocked : t.notEligibleQuarter,
+        eligible: creditsData.hasCredits,
+        plan,
+        used: creditsData.used,
+        limit: creditsData.limit,
+        remaining: creditsData.remaining,
+        // If no credits left, show a specific reason
+        reason: creditsData.hasCredits ? null : "no_credits",
       });
     } catch (err: any) {
       const rawMessage = err?.message || "";
@@ -434,7 +463,15 @@ export default function Home() {
 
               {error && <AlertBox type="error">{error}</AlertBox>}
 
-              {result && !result.eligible && (
+              {/* ✅ No credits left message */}
+              {result && !result.eligible && result.reason === "no_credits" && (
+                <AlertBox type="warning">
+                  <p className="font-medium">{t.noCreditsLeft}</p>
+                </AlertBox>
+              )}
+
+              {/* Not eligible (membership level) */}
+              {result && !result.eligible && result.reason !== "no_credits" && (
                 <AlertBox type="warning">
                   <p className="font-medium">{t.notEligibleTitle}</p>
                   {result.reason && <p className="mt-1">{result.reason}</p>}
@@ -449,6 +486,12 @@ export default function Home() {
                       {t.eligibleText1} <span className="font-semibold capitalize">{result.plan}</span> {t.eligibleText2}{" "}
                       <span className="font-semibold">{SESSION_INFO[uiLang][result.plan as "basic" | "premium"]}</span>.
                     </p>
+                    {/* ✅ Show remaining credits */}
+                    {result.remaining !== undefined && (
+                      <p className="mt-1 text-xs font-semibold">
+                        {result.remaining} {t.creditsRemaining}
+                      </p>
+                    )}
                   </AlertBox>
 
                   <div className="border-t border-gray-100 pt-5 space-y-5">
