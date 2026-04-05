@@ -66,6 +66,11 @@ const translations = {
     notEligibleTitle: "You are not eligible to book a session at this time.",
     noCreditsLeft: "You've used all your sessions for this quarter. See you next quarter!",
     creditsRemaining: "sessions remaining this quarter",
+    nextQuarterIn: "Next quarter starts in",
+    days: "days",
+    hours: "hrs",
+    minutes: "min",
+    seconds: "sec",
     eligibleTitle: "You are eligible!",
     eligibleText1: "Your",
     eligibleText2: "plan gives you access to",
@@ -129,6 +134,11 @@ const translations = {
     notEligibleTitle: "Vous n'êtes pas éligible pour réserver une session pour le moment.",
     noCreditsLeft: "Vous avez utilisé toutes vos sessions ce trimestre. À bientôt le trimestre prochain !",
     creditsRemaining: "sessions restantes ce trimestre",
+    nextQuarterIn: "Le prochain trimestre commence dans",
+    days: "j",
+    hours: "h",
+    minutes: "min",
+    seconds: "sec",
     eligibleTitle: "Vous êtes éligible !",
     eligibleText1: "Votre formule",
     eligibleText2: "vous donne accès à",
@@ -177,6 +187,42 @@ const translations = {
 };
 
 type UILang = "en" | "fr";
+
+// ✅ Returns the start of the next quarter
+function getNextQuarterStart(): Date {
+  const now = new Date();
+  const month = now.getMonth();
+  const year = now.getFullYear();
+  const nextQuarterMonth = Math.floor(month / 3) * 3 + 3;
+  if (nextQuarterMonth >= 12) {
+    return new Date(year + 1, 0, 1, 0, 0, 0, 0);
+  }
+  return new Date(year, nextQuarterMonth, 1, 0, 0, 0, 0);
+}
+
+// ✅ Live countdown hook
+function useCountdown() {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date().getTime();
+      const target = getNextQuarterStart().getTime();
+      const diff = Math.max(0, target - now);
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((diff % (1000 * 60)) / 1000),
+      });
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return timeLeft;
+}
 
 function normalizeParam(str: string | null | undefined) {
   return str?.toLowerCase().trim() ?? "";
@@ -228,6 +274,7 @@ const getFriendlyError = (message: string, t: any) => {
 export default function Home() {
   const [uiLang, setUiLang] = useState<UILang>("en");
   const t = translations[uiLang];
+  const countdown = useCountdown();
 
   const [email, setEmail] = useState("");
   const [isValidEmail, setIsValidEmail] = useState(false);
@@ -278,7 +325,6 @@ export default function Home() {
     if (!prefillMentor) setMentor("");
   };
 
-  // ✅ UPDATED: checkEligibility now also checks credits in the Google Sheet
   const checkEligibility = async () => {
     try {
       setLoading(true);
@@ -286,7 +332,6 @@ export default function Home() {
       setError(null);
       resetForm();
 
-      // Step 1: Check membership eligibility via existing API
       const res = await fetch(`/api/check-eligibility?email=${encodeURIComponent(email)}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -301,7 +346,6 @@ export default function Home() {
       const isEligible = data.isEligible && !data.isBlocked;
       const plan = String(data.membershipType || "").toLowerCase();
 
-      // If not eligible at membership level, stop here
       if (!isEligible) {
         setResult({
           eligible: false,
@@ -311,7 +355,6 @@ export default function Home() {
         return;
       }
 
-      // Step 2: Check remaining credits in Google Sheet
       const creditsRes = await fetch(
         `${ZAPIER_WEBHOOK}?action=checkCredits&email=${encodeURIComponent(email)}&plan=${encodeURIComponent(plan)}`
       );
@@ -323,7 +366,6 @@ export default function Home() {
         used: creditsData.used,
         limit: creditsData.limit,
         remaining: creditsData.remaining,
-        // If no credits left, show a specific reason
         reason: creditsData.hasCredits ? null : "no_credits",
       });
     } catch (err: any) {
@@ -415,7 +457,6 @@ export default function Home() {
           </div>
 
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t.title}</h1>
-
           <p className="mt-3 text-gray-500 text-sm leading-relaxed">{t.subtitle}</p>
 
           <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
@@ -463,14 +504,34 @@ export default function Home() {
 
               {error && <AlertBox type="error">{error}</AlertBox>}
 
-              {/* ✅ No credits left message */}
+              {/* ✅ No credits: warning + countdown timer */}
               {result && !result.eligible && result.reason === "no_credits" && (
-                <AlertBox type="warning">
-                  <p className="font-medium">{t.noCreditsLeft}</p>
-                </AlertBox>
+                <div className="space-y-3">
+                  <AlertBox type="warning">
+                    <p className="font-medium">{t.noCreditsLeft}</p>
+                  </AlertBox>
+                  <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+                    <p className="text-xs text-amber-700 mb-2 font-medium text-center">{t.nextQuarterIn}</p>
+                    <div className="flex gap-2 justify-center">
+                      {[
+                        { value: countdown.days, label: t.days },
+                        { value: countdown.hours, label: t.hours },
+                        { value: countdown.minutes, label: t.minutes },
+                        { value: countdown.seconds, label: t.seconds },
+                      ].map(({ value, label }) => (
+                        <div key={label} className="flex flex-col items-center bg-white rounded-lg px-3 py-2 min-w-[52px] border border-amber-100 shadow-sm">
+                          <span className="text-lg font-bold text-amber-700 tabular-nums">
+                            {String(value).padStart(2, "0")}
+                          </span>
+                          <span className="text-[10px] text-amber-500 font-medium uppercase tracking-wide">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
 
-              {/* Not eligible (membership level) */}
+              {/* Not eligible at membership level */}
               {result && !result.eligible && result.reason !== "no_credits" && (
                 <AlertBox type="warning">
                   <p className="font-medium">{t.notEligibleTitle}</p>
@@ -486,7 +547,6 @@ export default function Home() {
                       {t.eligibleText1} <span className="font-semibold capitalize">{result.plan}</span> {t.eligibleText2}{" "}
                       <span className="font-semibold">{SESSION_INFO[uiLang][result.plan as "basic" | "premium"]}</span>.
                     </p>
-                    {/* ✅ Show remaining credits */}
                     {result.remaining !== undefined && (
                       <p className="mt-1 text-xs font-semibold">
                         {result.remaining} {t.creditsRemaining}
