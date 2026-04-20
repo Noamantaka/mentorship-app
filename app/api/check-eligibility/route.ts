@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       }
 
       // Get or create credits
-      const limit = member.plan === "premium" ? 8 : 2;
+      const limit = credits?.limit_count ?? (member.plan === "premium" ? 8 : 2);
       let { data: credits } = await supabaseAdmin
         .from("credits")
         .select("*")
