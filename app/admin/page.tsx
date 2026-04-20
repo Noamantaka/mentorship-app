@@ -21,10 +21,18 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [changePasswordError, setChangePasswordError] = useState("");
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setChecking(false); });
@@ -47,6 +55,25 @@ export default function AdminPage() {
 
   const handleLogout = async () => { await supabase.auth.signOut(); };
 
+  const handleChangePassword = async () => {
+    setChangePasswordError("");
+    if (newPassword.length < 8) { setChangePasswordError("Password must be at least 8 characters."); return; }
+    if (newPassword !== confirmPassword) { setChangePasswordError("Passwords don't match."); return; }
+    setChangingPassword(true);
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: session.user.email, password: oldPassword });
+    if (signInError) { setChangePasswordError("Old password is incorrect."); setChangingPassword(false); return; }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) { setChangePasswordError("Failed to update password."); }
+    else {
+      setChangePasswordSuccess(true);
+      setTimeout(() => {
+        setShowChangePassword(false); setOldPassword(""); setNewPassword("");
+        setConfirmPassword(""); setChangePasswordSuccess(false);
+      }, 2000);
+    }
+    setChangingPassword(false);
+  };
+
   if (checking) return <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center text-gray-400 text-sm">Loading...</div>;
 
   if (!session) {
@@ -60,8 +87,18 @@ export default function AdminPage() {
           <div className="space-y-3">
             <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 placeholder-gray-400" />
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 placeholder-gray-400" />
+            <div className="relative">
+              <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 placeholder-gray-400 pr-10" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                )}
+              </button>
+            </div>
           </div>
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -83,6 +120,40 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F6F3]">
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-xl">
+            <h3 className="font-semibold text-gray-900">Change Password</h3>
+            {changePasswordSuccess ? (
+              <p className="text-emerald-600 text-sm text-center py-4">✅ Password updated successfully!</p>
+            ) : (
+              <>
+                <div className="space-y-3">
+                  <input type="password" placeholder="Current password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 placeholder-gray-400" />
+                  <input type="password" placeholder="New password (min 8 chars)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 placeholder-gray-400" />
+                  <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 placeholder-gray-400" />
+                </div>
+                {changePasswordError && <p className="text-red-500 text-sm">{changePasswordError}</p>}
+                <div className="flex gap-2">
+                  <button onClick={handleChangePassword} disabled={changingPassword || !oldPassword || !newPassword || !confirmPassword}
+                    className="flex-1 py-2.5 rounded-xl bg-[#7c16ff] text-white text-sm font-medium hover:bg-gray-800 transition disabled:opacity-40">
+                    {changingPassword ? "Updating..." : "Update Password"}
+                  </button>
+                  <button onClick={() => { setShowChangePassword(false); setOldPassword(""); setNewPassword(""); setConfirmPassword(""); setChangePasswordError(""); }}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:text-gray-900 transition">
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img src="https://thelifedao.io/logos/life-logo.svg" alt="LifeDAO" className="h-8" />
@@ -90,6 +161,7 @@ export default function AdminPage() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-400">{session.user.email}</span>
+          <button onClick={() => setShowChangePassword(true)} className="text-sm text-gray-500 hover:text-gray-900 transition">Change Password</button>
           <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-900 transition">Logout</button>
         </div>
       </div>
@@ -346,13 +418,13 @@ function RequestsTab({ adminEmail }: { adminEmail: string }) {
   useEffect(() => { fetchRequests(); fetchMentors(); }, [showArchived]);
 
   useEffect(() => {
-  if (editModal) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "";
-  }
-  return () => { document.body.style.overflow = ""; };
-}, [editModal]);
+    if (editModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [editModal]);
 
   const handleApprove = async (id: string, requestId: string, memberEmail: string) => {
     setActionLoading(id);
@@ -452,85 +524,82 @@ function RequestsTab({ adminEmail }: { adminEmail: string }) {
 
   return (
     <div className="space-y-4">
-
-      {/* Edit Modal */}
-{editModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{backgroundColor: "rgba(0,0,0,0.4)"}}>
-    <div style={{maxHeight: "85vh", overflowY: "auto"}} className="bg-white rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-xl">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900">Edit Request</h3>
-        <span className="text-xs text-gray-400">{editModal.request_id}</span>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
-          <select value={editData.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-200">
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Field</label>
-          <select value={editData.field} onChange={(e) => setEditData({ ...editData, field: e.target.value, mentor_id: "" })}
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-200">
-            {FIELDS.map((f) => <option key={f} value={f}>{f}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Mentor</label>
-          <select value={editData.mentor_id} onChange={(e) => setEditData({ ...editData, mentor_id: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-200">
-            <option value="">Select mentor...</option>
-            {availableMentorsForField.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Language</label>
-          <input value={editData.language} onChange={(e) => setEditData({ ...editData, language: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200" />
-        </div>
-      </div>
-      <div className="space-y-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i}>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Question {i}</label>
-            <input value={editData[`question_${i}`]} onChange={(e) => setEditData({ ...editData, [`question_${i}`]: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200" />
+      {editModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{backgroundColor: "rgba(0,0,0,0.4)"}}>
+          <div style={{maxHeight: "85vh", overflowY: "auto"}} className="bg-white rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">Edit Request</h3>
+              <span className="text-xs text-gray-400">{editModal.request_id}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <select value={editData.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-200">
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Field</label>
+                <select value={editData.field} onChange={(e) => setEditData({ ...editData, field: e.target.value, mentor_id: "" })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-200">
+                  {FIELDS.map((f) => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Mentor</label>
+                <select value={editData.mentor_id} onChange={(e) => setEditData({ ...editData, mentor_id: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-200">
+                  <option value="">Select mentor...</option>
+                  {availableMentorsForField.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Language</label>
+                <input value={editData.language} onChange={(e) => setEditData({ ...editData, language: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i}>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Question {i}</label>
+                  <input value={editData[`question_${i}`]} onChange={(e) => setEditData({ ...editData, [`question_${i}`]: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200" />
+                </div>
+              ))}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Goal</label>
+                <textarea value={editData.goal} onChange={(e) => setEditData({ ...editData, goal: e.target.value })} rows={3}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 resize-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Document Link</label>
+                <input value={editData.document_link} onChange={(e) => setEditData({ ...editData, document_link: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200" />
+              </div>
+            </div>
+            {editData.status !== editModal.status && (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
+                <p className="text-xs text-amber-700">⚠️ Status changed from <strong>{editModal.status}</strong> to <strong>{editData.status}</strong> — an email will be sent to the mentee.</p>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <button onClick={saveEdit} disabled={saving}
+                className="flex-1 py-2.5 rounded-xl bg-[#7c16ff] text-white text-sm font-medium hover:bg-gray-800 transition disabled:opacity-40">
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+              <button onClick={() => setEditModal(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:text-gray-900 transition">
+                Cancel
+              </button>
+            </div>
           </div>
-        ))}
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Goal</label>
-          <textarea value={editData.goal} onChange={(e) => setEditData({ ...editData, goal: e.target.value })} rows={3}
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 resize-none" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Document Link</label>
-          <input value={editData.document_link} onChange={(e) => setEditData({ ...editData, document_link: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200" />
-        </div>
-      </div>
-      {editData.status !== editModal.status && (
-        <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
-          <p className="text-xs text-amber-700">⚠️ Status changed from <strong>{editModal.status}</strong> to <strong>{editData.status}</strong> — an email will be sent to the mentee.</p>
         </div>
       )}
-      <div className="flex gap-2">
-        <button onClick={saveEdit} disabled={saving}
-          className="flex-1 py-2.5 rounded-xl bg-[#7c16ff] text-white text-sm font-medium hover:bg-gray-800 transition disabled:opacity-40">
-          {saving ? "Saving..." : "Save Changes"}
-        </button>
-        <button onClick={() => setEditModal(null)}
-          className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:text-gray-900 transition">
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
 
-      {/* Reject Modal */}
       {rejectModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 shadow-xl">
@@ -552,7 +621,6 @@ function RequestsTab({ adminEmail }: { adminEmail: string }) {
         </div>
       )}
 
-      {/* Search + Filter */}
       <div className="flex gap-2">
         <input type="text" placeholder="Search by email, name, mentor or status..." value={search} onChange={(e) => setSearch(e.target.value)}
           className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 placeholder-gray-400" />
@@ -565,7 +633,6 @@ function RequestsTab({ adminEmail }: { adminEmail: string }) {
         )}
       </div>
 
-      {/* Filter Panel */}
       {showFilter && (
         <div className="bg-white rounded-2xl border border-gray-100 p-4 grid grid-cols-3 gap-3">
           <div>
@@ -595,7 +662,6 @@ function RequestsTab({ adminEmail }: { adminEmail: string }) {
         </div>
       )}
 
-      {/* Status Tabs + Archive */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex gap-2 flex-wrap">
           {["all", "pending", "approved", "rejected"].map((s) => (
