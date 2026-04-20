@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const ZAPIER_WEBHOOK = "https://script.google.com/macros/s/AKfycbxK45IY_7VVLkwNXmmgTVrlPpSt7gZtHG30o-0q0jf_leG0oqSU44WAFGcOWco4PJBy/exec";
+const SUBMIT_URL = "/api/submit-request";
 
 const FIELD_MENTORS = {
   "Finance Literacy & Crypto": [
@@ -188,7 +188,6 @@ const translations = {
 
 type UILang = "en" | "fr";
 
-// ✅ Returns the start of the next quarter
 function getNextQuarterStart(): Date {
   const now = new Date();
   const month = now.getMonth();
@@ -200,7 +199,6 @@ function getNextQuarterStart(): Date {
   return new Date(year, nextQuarterMonth, 1, 0, 0, 0, 0);
 }
 
-// ✅ Live countdown hook
 function useCountdown() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -355,18 +353,13 @@ export default function Home() {
         return;
       }
 
-      const creditsRes = await fetch(
-        `${ZAPIER_WEBHOOK}?action=checkCredits&email=${encodeURIComponent(email)}&plan=${encodeURIComponent(plan)}`
-      );
-      const creditsData = await creditsRes.json();
-
       setResult({
-        eligible: creditsData.hasCredits,
+        eligible: data.hasCredits,
         plan,
-        used: creditsData.used,
-        limit: creditsData.limit,
-        remaining: creditsData.remaining,
-        reason: creditsData.hasCredits ? null : "no_credits",
+        used: data.used,
+        limit: data.limit,
+        remaining: data.remaining,
+        reason: data.hasCredits ? null : "no_credits",
       });
     } catch (err: any) {
       const rawMessage = err?.message || "";
@@ -394,14 +387,12 @@ export default function Home() {
       ui_language: uiLang,
     });
 
-    const timeout = new Promise((r) => setTimeout(r, 3000));
-
     try {
-      const request = fetch(ZAPIER_WEBHOOK, {
+      const res = await fetch(SUBMIT_URL, {
         method: "POST",
         body: params,
       });
-      await Promise.race([request, timeout]);
+      if (!res.ok) throw new Error("Submit failed");
     } catch (_) {
     } finally {
       setSubmitting(false);
@@ -504,7 +495,6 @@ export default function Home() {
 
               {error && <AlertBox type="error">{error}</AlertBox>}
 
-              {/* ✅ No credits: warning + countdown timer */}
               {result && !result.eligible && result.reason === "no_credits" && (
                 <div className="space-y-3">
                   <AlertBox type="warning">
@@ -531,7 +521,6 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Not eligible at membership level */}
               {result && !result.eligible && result.reason !== "no_credits" && (
                 <AlertBox type="warning">
                   <p className="font-medium">{t.notEligibleTitle}</p>
