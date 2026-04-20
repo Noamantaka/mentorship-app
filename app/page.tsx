@@ -330,10 +330,11 @@ export default function Home() {
       setError(null);
       resetForm();
 
-      const res = await fetch(`/api/check-eligibility?email=${encodeURIComponent(email)}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
+const res = await fetch(`/api/check-eligibility?email=${encodeURIComponent(email)}`, {
+  method: "GET",
+  headers: { "Content-Type": "application/json" },
+  cache: "no-store",
+});
 
       const data = await res.json();
 
