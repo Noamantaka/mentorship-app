@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+export const dynamic = "force-dynamic";
 
 function getCurrentQuarter(): string {
   const now = new Date();
