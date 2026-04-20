@@ -26,7 +26,6 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (member) {
-      // Member found in Supabase — use our data
       if (member.is_blocked) {
         return NextResponse.json({ isEligible: false, isBlocked: true, membershipType: member.plan });
       }
@@ -36,7 +35,6 @@ export async function GET(req: NextRequest) {
       }
 
       // Get or create credits
-      const limit = credits?.limit_count ?? (member.plan === "premium" ? 8 : 2);
       let { data: credits } = await supabaseAdmin
         .from("credits")
         .select("*")
@@ -44,17 +42,19 @@ export async function GET(req: NextRequest) {
         .eq("quarter", quarter)
         .single();
 
+      const defaultLimit = member.plan === "premium" ? 8 : 2;
+
       if (!credits) {
         const { data: newCredits } = await supabaseAdmin
           .from("credits")
-          .insert({ member_id: member.id, quarter, used: 0, limit_count: limit })
+          .insert({ member_id: member.id, quarter, used: 0, limit_count: defaultLimit })
           .select()
           .single();
         credits = newCredits;
       }
 
       const used = credits?.used ?? 0;
-      const creditLimit = credits?.limit_count ?? limit;
+      const creditLimit = credits?.limit_count ?? defaultLimit;
       const remaining = creditLimit - used;
 
       return NextResponse.json({
@@ -101,15 +101,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ isEligible: false, isBlocked: data.isBlocked, membershipType: plan });
     }
 
-    // Auto-create member in Supabase for future use
+    // Auto-create member in Supabase
     const { data: newMember } = await supabaseAdmin
       .from("members")
       .insert({ email: normalizedEmail, plan, is_blocked: false, is_eligible: true })
       .select()
       .single();
 
-    // Create credits
-    const limit = plan === "premium" ? 8 : 2;
+    const defaultLimit = plan === "premium" ? 8 : 2;
+
     let { data: credits } = await supabaseAdmin
       .from("credits")
       .select("*")
@@ -120,21 +120,21 @@ export async function GET(req: NextRequest) {
     if (!credits) {
       const { data: newCredits } = await supabaseAdmin
         .from("credits")
-        .insert({ member_id: newMember.id, quarter, used: 0, limit_count: limit })
+        .insert({ member_id: newMember.id, quarter, used: 0, limit_count: defaultLimit })
         .select()
         .single();
       credits = newCredits;
     }
 
     const used = credits?.used ?? 0;
-    const remaining = limit - used;
+    const remaining = defaultLimit - used;
 
     return NextResponse.json({
       isEligible: true,
       isBlocked: false,
       membershipType: plan,
       used,
-      limit,
+      limit: defaultLimit,
       remaining,
       hasCredits: remaining > 0,
     });
