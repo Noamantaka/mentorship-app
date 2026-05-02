@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 
 type Tab = "members" | "requests" | "credits" | "mentors" | "logs";
@@ -13,6 +13,158 @@ function getCurrentQuarter(): string {
 
 async function logAction(adminEmail: string, action: string, targetEmail: string, details: string) {
   await supabase.from("admin_logs").insert({ admin_email: adminEmail, action, target_email: targetEmail, details });
+}
+
+// ─── TIME HELPERS ───────────────────────────────────────────────
+function formatTimestamp(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+}
+
+function timeAgo(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return formatTimestamp(dateStr);
+}
+
+// ─── NOTIFICATION BELL ───────────────────────────────────────────────
+function NotificationBell({ onTabChange }: { onTabChange: (tab: Tab) => void }) {
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [open, setOpen] = useState(false);
+  const [lastSeen, setLastSeen] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("admin_notif_last_seen") || new Date(0).toISOString();
+    }
+    return new Date(0).toISOString();
+  });
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const fetchPending = async () => {
+    const { data } = await supabase
+      .from("session_requests")
+      .select("*, members(email, full_name)")
+      .eq("status", "pending")
+      .eq("is_archived", false)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setPendingRequests(data || []);
+  };
+
+  useEffect(() => {
+    fetchPending();
+    // Poll every 60 seconds
+    const interval = setInterval(fetchPending, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const newCount = pendingRequests.filter(r => r.created_at > lastSeen).length;
+
+  const handleOpen = () => {
+    setOpen(!open);
+    if (!open) {
+      const now = new Date().toISOString();
+      setLastSeen(now);
+      if (typeof window !== "undefined") localStorage.setItem("admin_notif_last_seen", now);
+    }
+  };
+
+  const handleGoToRequest = () => {
+    setOpen(false);
+    onTabChange("requests");
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={handleOpen}
+        className="relative p-2 rounded-xl hover:bg-gray-100 transition text-gray-500 hover:text-gray-900"
+        title="Pending requests"
+      >
+        {/* Bell icon */}
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        {/* Badge */}
+        {pendingRequests.length > 0 && (
+          <span className={`absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-white text-[10px] font-bold px-1 ${newCount > 0 ? "bg-red-500 animate-pulse" : "bg-[#7c16ff]"}`}>
+            {pendingRequests.length > 99 ? "99+" : pendingRequests.length}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <span className="font-semibold text-gray-900 text-sm">Pending Requests</span>
+            {pendingRequests.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">{pendingRequests.length} pending</span>
+            )}
+          </div>
+
+          <div className="max-h-72 overflow-y-auto">
+            {pendingRequests.length === 0 ? (
+              <div className="px-4 py-6 text-center text-gray-400 text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto mb-2 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                All caught up!
+              </div>
+            ) : (
+              pendingRequests.map((r) => {
+                const isNew = r.created_at > lastSeen;
+                return (
+                  <div key={r.id} className={`px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition ${isNew ? "bg-purple-50/40" : ""}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {r.members?.full_name || r.members?.email}
+                          {isNew && <span className="ml-1.5 px-1.5 py-0.5 rounded-md bg-[#7c16ff] text-white text-[9px] font-bold uppercase tracking-wide">New</span>}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate">{r.field}</p>
+                      </div>
+                      <span className="text-[10px] text-gray-400 whitespace-nowrap mt-0.5">{timeAgo(r.created_at)}</span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {pendingRequests.length > 0 && (
+            <button
+              onClick={handleGoToRequest}
+              className="w-full px-4 py-3 text-center text-sm font-medium text-[#7c16ff] hover:bg-purple-50 transition border-t border-gray-100"
+            >
+              View all pending requests →
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function AdminPage() {
@@ -154,6 +306,7 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* ─── HEADER ─── */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img src="https://thelifedao.io/logos/life-logo.svg" alt="LifeDAO" className="h-8" />
@@ -161,10 +314,13 @@ export default function AdminPage() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-400">{session.user.email}</span>
+          {/* 🔔 Notification Bell */}
+          <NotificationBell onTabChange={(t) => setTab(t)} />
           <button onClick={() => setShowChangePassword(true)} className="text-sm text-gray-500 hover:text-gray-900 transition">Change Password</button>
           <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-900 transition">Logout</button>
         </div>
       </div>
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex gap-2 mb-6 flex-wrap">
           {(["members", "requests", "credits", "mentors", "logs"] as Tab[]).map((t) => (
@@ -688,6 +844,17 @@ function RequestsTab({ adminEmail }: { adminEmail: string }) {
                 <p className="text-xs text-gray-500">{r.members?.full_name} · {r.field} · {r.language}</p>
                 <p className="text-xs text-gray-500">Mentor: {r.mentors?.name} · {r.quarter}</p>
                 {r.request_id && <p className="text-xs text-gray-400 mt-0.5">ID: {r.request_id}</p>}
+                {/* ── TIMESTAMP ── */}
+                {r.created_at && (
+                  <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span title={formatTimestamp(r.created_at)}>{timeAgo(r.created_at)}</span>
+                    <span className="text-gray-300">·</span>
+                    <span className="text-gray-300">{formatTimestamp(r.created_at)}</span>
+                  </p>
+                )}
               </div>
               <span className={`px-2 py-1 rounded-lg text-xs font-medium ${statusColor[r.status]}`}>{r.status}</span>
             </div>
